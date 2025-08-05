@@ -40,14 +40,14 @@ lint-fix:
 test-setup:
 	@echo "Setting up test environment..."
 	@echo "1. Dropping postgres_test database if it exists..."
-	-docker exec -it ls-py-run-handler-db-postgres-15-1 psql -U postgres -c "DROP DATABASE IF EXISTS postgres_test;"
+	docker exec -it  ls-py-run-handler-main-db-postgres-15-1 psql -U postgres -c "DROP DATABASE IF EXISTS postgres_test;"
 	@echo "2. Creating postgres_test database..."
-	docker exec -it ls-py-run-handler-db-postgres-15-1 psql -U postgres -c "CREATE DATABASE postgres_test;"
+	docker exec -it ls-py-run-handler-main-db-postgres-15-1 psql -U postgres -c "CREATE DATABASE postgres_test;"
 	@echo "3. Configuring MinIO client..."
-	docker exec -it ls-py-run-handler-minio-1 mc alias set local http://localhost:9000 minioadmin1 minioadmin1
+	docker exec -it ls-py-run-handler-main-minio-1 mc alias set local http://localhost:9000 minioadmin1 minioadmin1
 	@echo "4. Clearing and recreating runs-test bucket..."
-	-docker exec -it ls-py-run-handler-minio-1 mc rb --force local/runs-test
-	docker exec -it ls-py-run-handler-minio-1 mc mb local/runs-test
+	docker exec -it ls-py-run-handler-main-minio-1 mc rb --force local/runs-test
+	docker exec -it ls-py-run-handler-main-minio-1 mc mb local/runs-test
 	@echo "5. Running migrations on test database..."
 	make db-migrate-test
 	@echo "Test environment setup complete!"

@@ -1,5 +1,44 @@
-# ls-py-handler
+# Submission summary
 
+
+### Initial Benchmark Results
+```
+----------------------------------------------------------------------------------------------- benchmark: 2 tests -----------------------------------------------------------------------------------------------
+Name (time in ms)                          Min                   Max                  Mean              StdDev                Median                 IQR            Outliers     OPS            Rounds  Iterations
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_create_batch_runs_50_100kb       535.8392 (1.0)        574.8675 (1.0)        551.7946 (1.0)       15.1240 (1.0)        546.3017 (1.0)       20.1775 (1.0)           2;0  1.8123 (1.0)           5           1
+test_create_batch_runs_500_10kb     1,675.0273 (3.13)     1,973.3075 (3.43)     1,882.2039 (3.41)     119.1980 (7.88)     1,930.0932 (3.53)     107.9891 (5.35)          1;1  0.5313 (0.29)          5           1
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+```
+
+### Benchmark Results After Changes
+```
+
+------------------------------------------------------------------------------------------------------ benchmark: 4 tests -----------------------------------------------------------------------------------------------------
+Name (time in ms)                                         Min                   Max                  Mean             StdDev                Median                IQR            Outliers     OPS            Rounds  Iterations
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_create_batch_runs_50_100kb (NOW)                326.2121 (1.0)        380.1544 (1.0)        352.7962 (1.0)      24.9902 (1.29)       341.9212 (1.0)      44.8347 (1.42)          3;0  2.8345 (1.0)           5           1
+test_create_batch_runs_50_100kb (0006_baselin)       336.4015 (1.03)       386.7313 (1.02)       364.1179 (1.03)     23.6905 (1.22)       373.5293 (1.09)     43.8231 (1.39)          1;0  2.7464 (0.97)          5           1
+test_create_batch_runs_500_10kb (NOW)              1,051.4855 (3.22)     1,097.5493 (2.89)     1,070.3113 (3.03)     19.3510 (1.0)      1,071.1837 (3.13)     31.5749 (1.0)           1;0  0.9343 (0.33)          5           1
+test_create_batch_runs_500_10kb (0006_baselin)     1,114.2992 (3.42)     1,189.4287 (3.13)     1,140.6321 (3.23)     29.6558 (1.53)     1,130.1563 (3.31)     35.9423 (1.14)          1;0  0.8767 (0.31)          5           1
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+```
+
+I identified that the main bottleneck was in the `create_batch_runs` function, specifically in the way it handled large JSON payloads.
+It would search the entire json payload for the metadata key range.
+Initially, I was going to just have it trim the payload to only include the remaining payload, but I realized 
+the instructions said "The entire batch must still be written to object storage, but you can change how this is done."
+Then I realized I could just write one JSON file per run instead of one large JSON file for the entire batch.
+Now I do not store the metadate locations in of the metadata, since I can just read the entire file and return its contents.
+
+I also made the database queries more efficient by using `bulk_create` for inserting runs, which significantly reduced the time taken for batch inserts.
+
+
+
+----
+# ls-py-handler
 A simple FastAPI server with endpoints for ingesting and fetching runs.
 
 ## Features

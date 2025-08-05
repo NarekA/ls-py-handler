@@ -1,14 +1,35 @@
+# from opentelemetry import trace
+# from opentelemetry.sdk.resources import Resource
+# from opentelemetry.sdk.trace import TracerProvider
+# from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+#
+# # Set up OpenTelemetry tracing
+# resource = Resource.create({"service.name": "my-app"})
+# provider = TracerProvider(resource=resource)
+# processor = BatchSpanProcessor(
+#     OTLPSpanExporter()
+# )
+# provider.add_span_processor(processor)
+# trace.set_tracer_provider(provider)
+
 from aiobotocore.session import get_session
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+
 
 from ls_py_handler.api.routes.runs import router as runs_router
 from ls_py_handler.config.settings import settings
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 
 app = FastAPI(
     title=settings.APP_TITLE,
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
+    default_response_class=ORJSONResponse,
 )
+
 
 # Include routers
 app.include_router(runs_router)
@@ -39,3 +60,6 @@ async def root():
     Root endpoint to verify the API is running.
     """
     return {"message": settings.APP_TITLE + " API"}
+
+
+FastAPIInstrumentor.instrument_app(app)
